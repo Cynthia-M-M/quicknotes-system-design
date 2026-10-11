@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="QuickNotes - High performance API Client & System Design Prototype for managing notes via RESTful endpoints."
+    />
+    <title>QuickNotes - API Client & System Design</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="api.js" defer></script>
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <header class="app-header">
+        <div class="header-badge">Project 2 • Distributed Architecture</div>
+        <h1 class="app-title">QuickNotes</h1>
+        <p class="app-subtitle">
+          Interactive REST API prototype communicating with JSONPlaceholder.
+        </p>
+      </header>
+
+      <main class="container">
+        <!-- Controls & Status Section -->
+        <section class="card controls-card" aria-labelledby="controls-heading">
+          <h2 id="controls-heading" class="sr-only">Controls and Status</h2>
+          <div class="controls-row">
+            <button id="load-btn" type="button" class="btn btn-primary">
+              <span class="btn-text">Load Notes</span>
+            </button>
+            <div class="status-container" role="status" aria-live="polite">
+              <p id="status" class="status-empty">Click "Load Notes" to fetch your data.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Create Note Section -->
+        <section class="card form-card" aria-labelledby="form-heading">
+          <div class="card-header">
+            <h2 id="form-heading">Create a Note</h2>
+            <span class="header-hint">POST /posts</span>
+          </div>
+
+          <form id="note-form" novalidate>
+            <div class="form-group">
+              <label for="title-input">
+                Title <span class="required" aria-hidden="true">*</span>
+                <span class="char-limit">(max 100 characters)</span>
+              </label>
+              <input
+                type="text"
+                id="title-input"
+                name="title"
+                placeholder="e.g. Database Indexing Strategy"
+                maxlength="100"
+                autocomplete="off"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="body-input">
+                Body <span class="optional">(Optional)</span>
+              </label>
+              <textarea
+                id="body-input"
+                name="body"
+                rows="4"
+                placeholder="Write your note content here..."
+              ></textarea>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="submit-btn" class="btn btn-success">
+                <span class="btn-text">Create Note</span>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Notes Feed Section -->
+        <section class="card notes-card" aria-labelledby="notes-heading">
+          <div class="card-header">
+            <h2 id="notes-heading">Your Notes</h2>
+            <span class="notes-count-badge" id="notes-count">0 items</span>
+          </div>
+
+          <!-- Empty by default per requirements -->
+          <ul id="notes-list" class="notes-list" aria-label="List of notes"></ul>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>QuickNotes System Design • Built for scale up to 1,000,000 users</p>
+      </footer>
+    </div>
+  </body>
+</html>
