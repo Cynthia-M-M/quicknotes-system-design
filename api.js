@@ -9,6 +9,10 @@ const API_URL = "https://jsonplaceholder.typicode.com/posts";
 // 2. DOM Elements
 const loadBtn = document.getElementById("load-btn");
 const statusEl = document.getElementById("status");
+const noteForm = document.getElementById("note-form");
+const titleInput = document.getElementById("title-input");
+const bodyInput = document.getElementById("body-input");
+const submitBtn = document.getElementById("submit-btn");
 const notesList = document.getElementById("notes-list");
 const notesCountEl = document.getElementById("notes-count");
 
@@ -168,5 +172,77 @@ async function loadNotes() {
   }
 }
 
+/**
+ * Task 2: Create a note (POST)
+ * Validates user input and sends a POST request with payload { title, body, userId: 1 }.
+ * @param {Event} event
+ */
+async function createNote(event) {
+  event.preventDefault();
+
+  const title = titleInput.value.trim();
+  const body = bodyInput.value.trim();
+
+  // Validation: Title is required
+  if (!title) {
+    showStatus("Validation Error: Title is required.", "error");
+    titleInput.focus();
+    return;
+  }
+
+  // Validation: Title max length is 100 characters
+  if (title.length > 100) {
+    showStatus(
+      "Validation Error: Title must be 100 characters or less.",
+      "error"
+    );
+    titleInput.focus();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  showStatus("Creating note...", "loading");
+
+  try {
+    const payload = {
+      title,
+      body,
+      userId: 1,
+    };
+
+    const newNote = await request(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // Remove empty-state message if present
+    clearEmptyState();
+
+    // Insert the new note at the top of the list
+    const noteEl = createNoteElement(newNote);
+    notesList.insertBefore(noteEl, notesList.firstChild);
+    updateNotesCount();
+
+    const statusCode = newNote._status || 201;
+    showStatus(
+      `Note created (status ${statusCode}, id ${newNote.id}).`,
+      "success"
+    );
+
+    // Clear form after successful creation
+    noteForm.reset();
+    titleInput.blur();
+  } catch (error) {
+    console.error("Error creating note:", error);
+    showStatus("Failed to create note. Please try again.", "error");
+  } finally {
+    submitBtn.disabled = false;
+  }
+}
+
 // 3. Event Listeners
 loadBtn.addEventListener("click", loadNotes);
+noteForm.addEventListener("submit", createNote);
