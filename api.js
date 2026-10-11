@@ -34,6 +34,7 @@ function showStatus(message, type) {
  */
 function updateNotesCount() {
   if (!notesCountEl) return;
+  // Count only actual note items, excluding any empty-state li
   const count = notesList.querySelectorAll(".note-item").length;
   notesCountEl.textContent = `${count} ${count === 1 ? "item" : "items"}`;
 }
@@ -75,7 +76,7 @@ async function request(url, options = {}) {
 
   if (!response.ok) {
     throw new Error(
-      `HTTP Error ${response.status}: ${response.statusText || "Request failed"}`
+      `HTTP Error ${response.status}: ${response.statusText || "Request failed"}`,
     );
   }
 
@@ -132,6 +133,20 @@ function createNoteElement(note) {
     bodyEl.textContent = note.body; // Safe textContent insertion
     li.appendChild(bodyEl);
   }
+
+  // Footer with Delete button
+  const footer = document.createElement("div");
+  footer.className = "note-footer";
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "btn btn-danger btn-delete";
+  deleteBtn.textContent = "Delete Note";
+
+  deleteBtn.addEventListener("click", () => deleteNote(note.id, li, deleteBtn));
+
+  footer.appendChild(deleteBtn);
+  li.appendChild(footer);
 
   return li;
 }
@@ -194,7 +209,7 @@ async function createNote(event) {
   if (title.length > 100) {
     showStatus(
       "Validation Error: Title must be 100 characters or less.",
-      "error"
+      "error",
     );
     titleInput.focus();
     return;
@@ -229,7 +244,7 @@ async function createNote(event) {
     const statusCode = newNote._status || 201;
     showStatus(
       `Note created (status ${statusCode}, id ${newNote.id}).`,
-      "success"
+      "success",
     );
 
     // Clear form after successful creation
@@ -243,6 +258,58 @@ async function createNote(event) {
   }
 }
 
+/**
+ * Task 3: Delete note (DELETE)
+ * Sends DELETE /posts/{id} and removes the note from the UI upon success.
+ *
+ * NOTE ON JSONPLACEHOLDER MOCK BEHAVIOR:
+ * JSONPlaceholder is a fake REST API for prototyping and testing.
+ * When a note is created via POST, JSONPlaceholder returns an id (such as 101)
+ * but does not truly persist it to a database on the server.
+ * When sending DELETE /posts/{id}, JSONPlaceholder responds with HTTP 200/204 to simulate
+ * successful deletion. Our request() wrapper verifies response.ok.
+ * If an error occurs, it is caught and an error status is displayed.
+ * Once verified, we remove the corresponding element from the DOM and refresh the UI state.
+ *
+ * @param {number|string} id - The ID of the note to delete.
+ * @param {HTMLLIElement} noteEl - The note list item element in the DOM.
+ * @param {HTMLButtonElement} deleteBtn - The delete button within the item.
+ */
+async function deleteNote(id, noteEl, deleteBtn) {
+  deleteBtn.disabled = true;
+  deleteBtn.textContent = "Deleting...";
+  showStatus("Deleting note...", "loading");
+
+  try {
+    await request(`${API_URL}/${id}`, {
+      method: "DELETE",
+    });
+
+    // Remove element from DOM on success
+    noteEl.remove();
+    updateNotesCount();
+
+    showStatus(`Note ${id} successfully deleted.`, "success");
+
+    // If the list is now empty, display empty state
+    if (notesList.querySelectorAll(".note-item").length === 0) {
+      renderEmptyState("All notes deleted. List is empty.");
+      showStatus("All notes deleted. List is empty.", "empty");
+    }
+  } catch (error) {
+    console.error(`Error deleting note ${id}:`, error);
+    showStatus(`Failed to delete note ${id}. Please try again.`, "error");
+    deleteBtn.disabled = false;
+    deleteBtn.textContent = "Delete Note";
+  }
+}
+
 // 3. Event Listeners
 loadBtn.addEventListener("click", loadNotes);
 noteForm.addEventListener("submit", createNote);
+
+// 4. Initial Application State
+showStatus('Click "Load Notes" to fetch your data.', "empty");
+renderEmptyState(
+  "No notes loaded yet. Click 'Load Notes' above to fetch notes.",
+);
